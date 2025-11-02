@@ -1,0 +1,215 @@
+{
+  "name": "Personal Finance AI Assistant with React Integration",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "finance-assistant",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c0dd8c0f-0dc1-4f76-9d33-ff6d04fef9a9",
+      "name": "React App Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "a6631865-4e30-42f6-8124-0b2ac9d17f19"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "userProfile",
+              "value": "Bank Account Balance: $5,250, Monthly Income: $4,500, Monthly Fixed Expenses: $2,800 (Rent: $1,200, Utilities: $200, Insurance: $300, Car Payment: $400, Student Loan: $350, Subscriptions: $150, Phone: $100, Internet: $100), Job Status: Full-time Software Developer, Financial Goals: Build emergency fund of $10,000, Save for house down payment, Pay off student loans early",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "chatInput",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "sessionId",
+              "value": "={{ $json.body.sessionId || 'default-session' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "6ba92565-f638-4db7-a2ff-62f425d3e29a",
+      "name": "User Profile Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a personal finance assistant - Finny (Your name and make sure you always use when asked.) focused on the long-term financial well-being of the user. Your role is to provide thoughtful, budget-conscious advice that considers the user's complete financial picture.\n\nUser Profile:\n{{ $('User Profile Configuration').item.json.userProfile }}\n\nGuidelines:\n1. Always consider the user's current financial situation when providing advice\n2. Prioritize long-term financial health over short-term gratification\n3. Encourage building emergency funds and reducing debt\n4. Provide specific, actionable budget recommendations when asked\n5. Use the calculator tool for financial calculations\n6. Answer questions about current events and general topics, but always tie financial implications back to the user's situation when relevant\n7. Be supportive and non-judgmental while being honest about financial realities\n8. Suggest budget-conscious alternatives when users ask about purchases or expenses\n9. Make sure you answer in concise manner and it should be in GenZ tone. Like a friend.\n\nWhen the user asks for budget help or financial decisions, provide:\n- Clear breakdown of costs\n- Impact on their monthly budget\n- Alternative options to save money\n- Long-term financial implications\n\nUser Question: {{ $json.body.message }}",
+        "options": {}
+      },
+      "id": "ed653baf-5e50-499f-a3b5-ac5386afebab",
+      "name": "Personal Finance AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        512,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "id": "4e30137f-751c-4a73-be6e-c64c4892fb85",
+      "name": "OpenAI GPT-4o Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        224
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "e1R57uEsZ54xTa5V",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "id": "f00acc83-528b-44ec-bfb4-ac3cbabec2ae",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        576,
+        224
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "a5beb7de-8c72-4319-ac4e-8da5e6c26bbc",
+      "name": "Budget Calculator Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        848,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{$json.output}}",
+        "options": {}
+      },
+      "id": "aff84e35-d236-4d96-81c3-bb7c1f73d389",
+      "name": "Send Response to React",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        912,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "React App Webhook": {
+      "main": [
+        [
+          {
+            "node": "User Profile Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User Profile Configuration": {
+      "main": [
+        [
+          {
+            "node": "Personal Finance AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI GPT-4o Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Personal Finance AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Personal Finance AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Budget Calculator Tool": {
+      "ai_tool": [
+        []
+      ]
+    },
+    "Personal Finance AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Response to React",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "executionTimeout": -1
+  },
+  "versionId": "a48bac8c-54ea-442e-a256-b602b24fa636",
+  "meta": {
+    "instanceId": "7ab36df1f4b75b378c7d0875ee74918a5dd1d39102fea71d6c00d6643b1b4a29"
+  },
+  "id": "do5M39j9aJnSDbzu",
+  "tags": []
+}
